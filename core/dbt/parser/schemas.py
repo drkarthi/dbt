@@ -101,6 +101,7 @@ class ParserRef:
             data_type=data_type,
             meta=meta,
             tags=tags,
+            quote=column.quote,
             _extra=column.extra
         )
 
