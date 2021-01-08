@@ -21,9 +21,17 @@
       {% set backup_relation = existing_relation.incorporate(path={"identifier": backup_identifier}) %}
       {% do adapter.drop_relation(backup_relation) %}
 
+      {% set tmp_identifier = this.identifier ~ "__dbt_tmp" %}
+      {%- set tmp_relation = api.Relation.create(identifier=tmp_identifier,
+                                                          schema=this.schema,
+                                                          database=this.database,
+                                                          type='table') -%} 
+
+      {% do run_query(create_table_as(False, tmp_relation, sql)) %}
       {% do adapter.rename_relation(target_relation, backup_relation) %}
-      {% set build_sql = create_table_as(False, target_relation, sql) %}
+      {% do adapter.rename_relation(tmp_relation, target_relation) %}
       {% do to_drop.append(backup_relation) %}
+      {% set build_sql = "select 1;" %}
   {% else %}
       {% set tmp_relation = make_temp_relation(target_relation) %}
       {% do run_query(create_table_as(True, tmp_relation, sql)) %}
